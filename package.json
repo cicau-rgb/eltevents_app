@@ -10,15 +10,20 @@
     "format": "biome format --write",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio --host 127.0.0.1"
+    "db:studio": "drizzle-kit studio --host 127.0.0.1",
+    "worker": "tsx --env-file=.env worker/index.ts",
+    "worker:start": "tsx worker/index.ts"
   },
   "dependencies": {
     "better-auth": "^1.7.6",
     "drizzle-orm": "^0.45.3",
     "next": "16.3.7",
     "pg": "^8.23.0",
+    "pg-boss": "^12.35.0",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "resend": "^6.31.0",
+    "tsx": "^4.23.15"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.2",
