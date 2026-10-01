@@ -47,4 +47,6 @@ Auth uses [Better Auth](https://better-auth.com) (email + password) inside Next.
 
 Setup: start Postgres with `docker compose up -d` (`compose.yaml`; the default `DATABASE_URL` in `.env.example` matches it), copy `.env.example` to `.env`, fill in `BETTER_AUTH_SECRET` (`openssl rand -base64 32`), then run `pnpm db:migrate`.
 
+Inspect the database with `pnpm db:studio` (Drizzle Studio, default port 4983, bound to localhost; local use only). For raw SQL: `docker compose exec postgres psql -U postgres -d eltevents`.
+
 Not done yet: email verification and password reset (need a mail sender), OAuth providers, rate-limit and `trustedOrigins` review before production.
