@@ -45,6 +45,6 @@ Auth uses [Better Auth](https://better-auth.com) (email + password) inside Next.
 - `proxy.ts` is an optimistic cookie check for protected paths (the `matcher`); it is not a security boundary.
 - `lib/db/auth-schema.ts` is generated: `npx auth@latest generate --config lib/auth.ts --output lib/db/auth-schema.ts`, then `pnpm db:generate` and `pnpm db:migrate`. Re-run after adding plugins.
 
-Setup: start Postgres with `docker compose up -d` (`compose.yaml`; the default `DATABASE_URL` in `.env.example` matches it), copy `.env.example` to `.env.local`, fill in `BETTER_AUTH_SECRET` (`openssl rand -base64 32`), then run `pnpm db:migrate`.
+Setup: start Postgres with `docker compose up -d` (`compose.yaml`; the default `DATABASE_URL` in `.env.example` matches it), copy `.env.example` to `.env`, fill in `BETTER_AUTH_SECRET` (`openssl rand -base64 32`), then run `pnpm db:migrate`.
 
 Not done yet: email verification and password reset (need a mail sender), OAuth providers, rate-limit and `trustedOrigins` review before production.
