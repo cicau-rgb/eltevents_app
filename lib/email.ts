@@ -4,7 +4,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 // The default sandbox sender only delivers to your own Resend account email.
 // Set EMAIL_FROM once a domain is verified in Resend.
-const from = process.env.EMAIL_FROM ?? "ELTE Events <onboarding@resend.dev>";
+const from = process.env.EMAIL_FROM || "ELTE Events <onboarding@resend.dev>";
 
 // Aliases of the published templates in the Resend dashboard (Templates).
 // Each template's variables are listed next to its alias.
