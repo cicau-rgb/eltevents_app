@@ -1,12 +1,18 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
+import { sendResetPasswordEmail, sendVerificationEmail } from "./auth-emails";
 import { db } from "./db";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, { provider: "pg" }),
   emailAndPassword: {
     enabled: true,
+    sendResetPassword: async (data) => sendResetPasswordEmail(data),
+  },
+  emailVerification: {
+    sendOnSignUp: true,
+    sendVerificationEmail: async (data) => sendVerificationEmail(data),
   },
   // Must stay the last plugin so server actions can set cookies.
   plugins: [nextCookies()],

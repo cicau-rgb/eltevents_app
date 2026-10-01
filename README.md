@@ -49,4 +49,6 @@ Setup: start Postgres with `docker compose up -d` (`compose.yaml`; the default `
 
 Inspect the database with `pnpm db:studio` (Drizzle Studio, default port 4983, bound to localhost; local use only). For raw SQL: `docker compose exec postgres psql -U postgres -d eltevents`.
 
-Not done yet: email verification and password reset (need a mail sender), OAuth providers, rate-limit and `trustedOrigins` review before production.
+Email: [Resend](https://resend.com) sends the auth emails. `lib/email.ts` is the sender and `lib/auth-emails.ts` adapts it to Better Auth's `sendVerificationEmail` / `sendResetPassword` hooks. The email bodies are **templates hosted in Resend** (dashboard → Templates), referenced by alias: `verify-email` and `reset-password`, each with the variables `USER_NAME` and `ACTION_URL`. Edit the copy in the dashboard and publish; no deploy needed. A different Resend account (e.g. production) needs the same two templates published under the same aliases, and a renamed variable fails at send time. Set `RESEND_API_KEY` (and `EMAIL_FROM` once you have a verified domain; the default sandbox sender only delivers to your own Resend account email). Verification mails go out on sign-up; sign-in is not yet blocked for unverified users (`requireEmailVerification`).
+
+Not done yet: a reset-password page (the reset email links to `/api/auth/reset-password/:token`, which needs a `redirectTo` page when requesting the reset), OAuth providers, rate-limit and `trustedOrigins` review before production.
