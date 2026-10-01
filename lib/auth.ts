@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
+import { after } from "next/server";
 import { sendResetPasswordEmail, sendVerificationEmail } from "./auth-emails";
 import { db } from "./db";
 
@@ -13,6 +14,13 @@ export const auth = betterAuth({
   emailVerification: {
     sendOnSignUp: true,
     sendVerificationEmail: async (data) => sendVerificationEmail(data),
+  },
+  advanced: {
+    // Better Auth only calls the email hooks for existing accounts and awaits
+    // them unless a handler is set, so awaiting would make the response time
+    // reveal which addresses are registered. after() runs them once the
+    // response is sent and keeps a serverless invocation alive until they settle.
+    backgroundTasks: { handler: (promise) => after(promise) },
   },
   // Must stay the last plugin so server actions can set cookies.
   plugins: [nextCookies()],
