@@ -35,3 +35,16 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 # eltevents_app
+
+## Authentication
+
+Auth uses [Better Auth](https://better-auth.com) (email + password) inside Next.js, with Postgres via Drizzle. There are no auth pages yet; the API is exposed under `/api/auth/*`.
+
+- `lib/auth.ts` is the server config; `lib/auth-client.ts` is the React client.
+- `lib/session.ts` has `getSession()` and `requireSession()` (redirects to `SIGN_IN_PATH`). Call it in server components, route handlers and server actions.
+- `proxy.ts` is an optimistic cookie check for protected paths (the `matcher`); it is not a security boundary.
+- `lib/db/auth-schema.ts` is generated: `npx auth@latest generate --config lib/auth.ts --output lib/db/auth-schema.ts`, then `pnpm db:generate` and `pnpm db:migrate`. Re-run after adding plugins.
+
+Setup: copy `.env.example` to `.env.local`, fill in `DATABASE_URL` and `BETTER_AUTH_SECRET` (`openssl rand -base64 32`), then run `pnpm db:migrate`.
+
+Not done yet: email verification and password reset (need a mail sender), OAuth providers, rate-limit and `trustedOrigins` review before production.
