@@ -1,4 +1,4 @@
-import { sendEmail } from "./email";
+import { enqueueEmail } from "./queue";
 
 type AuthEmailData = {
   user: { id: string; name: string; email: string };
@@ -6,26 +6,27 @@ type AuthEmailData = {
   token: string;
 };
 
-// Better Auth docs: don't await these in the hook, so response time doesn't
-// reveal whether an account exists. Failures are logged instead.
+// The hooks only enqueue; the worker (worker/index.ts) calls Resend. Enqueuing
+// is a single insert for known and unknown accounts alike, so response time
+// still doesn't reveal whether an account exists.
 export function sendVerificationEmail({ user, url, token }: AuthEmailData) {
-  sendEmail({
+  return enqueueEmail({
     to: user.email,
     template: {
       id: "verify-email",
       variables: { USER_NAME: user.name, ACTION_URL: url },
     },
     idempotencyKey: `verify-email/${user.id}/${token}`,
-  }).catch(console.error);
+  });
 }
 
 export function sendResetPasswordEmail({ user, url, token }: AuthEmailData) {
-  sendEmail({
+  return enqueueEmail({
     to: user.email,
     template: {
       id: "reset-password",
       variables: { USER_NAME: user.name, ACTION_URL: url },
     },
     idempotencyKey: `reset-password/${user.id}/${token}`,
-  }).catch(console.error);
+  });
 }

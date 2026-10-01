@@ -17,5 +17,19 @@ services:
       timeout: 3s
       retries: 10
 
+  # Email worker. Not started by default (locally you can run `pnpm worker`);
+  # start it with: docker compose --profile worker up -d --build
+  worker:
+    profiles: ["worker"]
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      # Inside the compose network Postgres is reachable as "postgres".
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/eltevents
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   pgdata:
