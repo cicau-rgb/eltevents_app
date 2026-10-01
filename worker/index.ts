@@ -2,7 +2,7 @@ import { PgBoss } from "pg-boss";
 import { sendEmail } from "../lib/email";
 import { SEND_EMAIL_QUEUE, type SendEmailJob } from "../lib/queue";
 
-// Long-running process: owns the pgboss schema and sends the queued emails.
+// Long-running process that sends the queued emails (maintenance, retries).
 // Needs DATABASE_URL, RESEND_API_KEY and (optionally) EMAIL_FROM.
 async function main() {
   const boss = new PgBoss({ connectionString: process.env.DATABASE_URL });

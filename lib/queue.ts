@@ -10,27 +10,34 @@ export type SendEmailJob = {
   idempotencyKey: string;
 };
 
-// Send-only client: start() just opens the pool and checks the schema exists
-// (no maintenance, no scheduling, no migration, no LISTEN connection). The
-// worker (worker/index.ts) owns the schema and the queue. Kept on globalThis so
-// dev hot reloads and warm serverless instances reuse one small pool.
+// Producer client: no maintenance, no scheduling, no LISTEN connection. It does
+// install the pgboss schema and create the queue if they are missing (both are
+// idempotent and safe to run concurrently with the worker), so a request that
+// arrives on a fresh database before the worker has ever started still queues
+// its email instead of losing it. Kept on globalThis so dev hot reloads and
+// warm serverless instances reuse one small pool.
 const globalForBoss = globalThis as unknown as {
   boss?: Promise<PgBoss>;
 };
 
+async function startBoss() {
+  const boss = new PgBoss({
+    connectionString: process.env.DATABASE_URL,
+    max: 2,
+    supervise: false,
+    schedule: false,
+    useListenNotify: false,
+  });
+  boss.on("error", console.error);
+  await boss.start();
+  await boss.createQueue(SEND_EMAIL_QUEUE);
+  return boss;
+}
+
 function getBoss() {
   if (!globalForBoss.boss) {
-    const boss = new PgBoss({
-      connectionString: process.env.DATABASE_URL,
-      max: 2,
-      supervise: false,
-      schedule: false,
-      migrate: false,
-      useListenNotify: false,
-    });
-    boss.on("error", console.error);
-    const started = boss.start();
-    // Don't cache a failed start (e.g. worker hasn't created the schema yet).
+    const started = startBoss();
+    // Don't cache a failed start, so the next request tries again.
     started.catch(() => {
       globalForBoss.boss = undefined;
     });
