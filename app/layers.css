@@ -1,0 +1,3 @@
+/* Cascade layer order for Astryx + Tailwind. Must be its own file, imported
+   before globals.css (webpack/Turbopack hoist @import above inline CSS). */
+@layer reset, theme, base, astryx-base, astryx-theme, components, utilities;

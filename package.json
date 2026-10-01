@@ -12,11 +12,16 @@
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio --host 127.0.0.1",
     "worker": "tsx --env-file=.env worker/index.ts",
-    "worker:start": "tsx worker/index.ts"
+    "worker:start": "tsx worker/index.ts",
+    "theme:build": "astryx theme build src/themes/neutral/neutralTheme.ts -o src/themes/neutral/built/neutralTheme.css --icons-specifier ../icons"
   },
   "dependencies": {
+    "@astryxdesign/core": "^0.6.3",
+    "@astryxdesign/theme-neutral": "^0.6.3",
+    "@stylexjs/stylex": "^0.19.1",
     "better-auth": "^1.7.6",
     "drizzle-orm": "^0.45.3",
+    "lucide-react": "^1.49.0",
     "next": "16.3.7",
     "pg": "^8.23.0",
     "pg-boss": "^12.35.0",
@@ -26,6 +31,7 @@
     "tsx": "^4.23.15"
   },
   "devDependencies": {
+    "@astryxdesign/cli": "^0.6.3",
     "@biomejs/biome": "2.4.2",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
