@@ -1,40 +1,37 @@
-import { Resend } from "resend";
+import nodemailer, { type Transporter } from "nodemailer";
+import type { ReactElement } from "react";
+import { render } from "react-email";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// SMTP_URL is read lazily so importing this module never fails; sending does.
+// Locally it points at Mailpit; staging/production use the provider's SMTP
+// URL (see .env.example). Pooled so the long-running worker reuses connections.
+let transporter: Transporter | undefined;
 
-// The default sandbox sender only delivers to your own Resend account email.
-// Set EMAIL_FROM once a domain is verified in Resend.
-const from = process.env.EMAIL_FROM || "ELTE Events <onboarding@resend.dev>";
+function getTransporter() {
+  if (!transporter) {
+    const url = process.env.SMTP_URL;
+    if (!url) throw new Error("SMTP_URL is not set");
+    transporter = nodemailer.createTransport({ url, pool: true });
+  }
+  return transporter;
+}
 
-// Aliases of the published templates in the Resend dashboard (Templates).
-// Each template's variables are listed next to its alias.
-export type EmailTemplate =
-  | { id: "verify-email"; variables: { USER_NAME: string; ACTION_URL: string } }
-  | {
-      id: "reset-password";
-      variables: { USER_NAME: string; ACTION_URL: string };
-    };
+// Falls back to a placeholder sender; set EMAIL_FROM to an address on a domain
+// verified with your SMTP provider.
+const from = process.env.EMAIL_FROM || "ELTE Events <noreply@localhost>";
 
 type SendEmailInput = {
   to: string;
-  template: EmailTemplate;
-  // Same key + same payload within 24h is not sent twice, so retries are safe.
-  idempotencyKey?: string;
+  subject: string;
+  react: ReactElement;
 };
 
-export async function sendEmail({
-  to,
-  template,
-  idempotencyKey,
-}: SendEmailInput) {
-  const { error } = await resend.emails.send(
-    { from, to: [to], template },
-    idempotencyKey ? { idempotencyKey } : undefined,
-  );
-  // The SDK returns errors instead of throwing.
-  if (error) {
-    throw new Error(
-      `Resend failed to send template "${template.id}": ${error.message}`,
-    );
-  }
+// Renders the React Email component to HTML (and a plain-text alternative) and
+// sends it over SMTP. Throws on failure, so the pg-boss worker retries the job.
+export async function sendEmail({ to, subject, react }: SendEmailInput) {
+  const [html, text] = await Promise.all([
+    render(react),
+    render(react, { plainText: true }),
+  ]);
+  await getTransporter().sendMail({ from, to, subject, html, text });
 }

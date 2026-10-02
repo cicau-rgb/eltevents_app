@@ -1,9 +1,10 @@
 import { PgBoss } from "pg-boss";
 import { sendEmail } from "../lib/email";
+import { buildEmail } from "../lib/email-templates";
 import { SEND_EMAIL_QUEUE, type SendEmailJob } from "../lib/queue";
 
 // Long-running process that sends the queued emails (maintenance, retries).
-// Needs DATABASE_URL, RESEND_API_KEY and (optionally) EMAIL_FROM.
+// Needs DATABASE_URL, SMTP_URL and (optionally) EMAIL_FROM.
 async function main() {
   const boss = new PgBoss({ connectionString: process.env.DATABASE_URL });
   boss.on("error", console.error);
@@ -11,9 +12,9 @@ async function main() {
   await boss.start();
   await boss.createQueue(SEND_EMAIL_QUEUE);
 
-  // sendEmail throws on Resend errors, so pg-boss retries the job.
+  // sendEmail throws on SMTP errors, so pg-boss retries the job.
   await boss.work<SendEmailJob>(SEND_EMAIL_QUEUE, async ([job]) => {
-    await sendEmail(job.data);
+    await sendEmail({ to: job.data.to, ...buildEmail(job.data.template) });
   });
 
   console.log(`Worker listening on "${SEND_EMAIL_QUEUE}"`);
