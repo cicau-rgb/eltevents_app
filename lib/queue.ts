@@ -1,5 +1,6 @@
 import { PgBoss } from "pg-boss";
 import type { EmailTemplate } from "./email-templates";
+import { baseEnv } from "./env";
 
 export const SEND_EMAIL_QUEUE = "send-email";
 
@@ -20,7 +21,7 @@ const globalForBoss = globalThis as unknown as {
 
 async function startBoss() {
   const boss = new PgBoss({
-    connectionString: process.env.DATABASE_URL,
+    connectionString: baseEnv().DATABASE_URL,
     max: 2,
     supervise: false,
     schedule: false,

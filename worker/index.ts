@@ -1,12 +1,15 @@
 import { PgBoss } from "pg-boss";
 import { sendEmail } from "../lib/email";
 import { buildEmail } from "../lib/email-templates";
+import { workerEnv } from "../lib/env";
 import { SEND_EMAIL_QUEUE, type SendEmailJob } from "../lib/queue";
 
 // Long-running process that sends the queued emails (maintenance, retries).
 // Needs DATABASE_URL, SMTP_URL and (optionally) EMAIL_FROM.
 async function main() {
-  const boss = new PgBoss({ connectionString: process.env.DATABASE_URL });
+  // Fail before connecting to anything if the environment is incomplete.
+  const env = workerEnv();
+  const boss = new PgBoss({ connectionString: env.DATABASE_URL });
   boss.on("error", console.error);
 
   await boss.start();

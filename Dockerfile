@@ -11,7 +11,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile --prod
 
 # The worker only needs the sender, the templates, the queue definition and itself.
-COPY lib/email.ts lib/email-templates.ts lib/queue.ts ./lib/
+COPY lib/email.ts lib/email-templates.ts lib/env.ts lib/queue.ts ./lib/
 COPY emails ./emails
 COPY tsconfig.json ./
 COPY worker ./worker

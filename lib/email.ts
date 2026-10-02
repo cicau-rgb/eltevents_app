@@ -1,24 +1,22 @@
 import nodemailer, { type Transporter } from "nodemailer";
 import type { ReactElement } from "react";
 import { render } from "react-email";
+import { workerEnv } from "./env";
 
-// SMTP_URL is read lazily so importing this module never fails; sending does.
+// The environment is read lazily so importing this module never fails; sending does.
 // Locally it points at Mailpit; staging/production use the provider's SMTP
 // URL (see .env.example). Pooled so the long-running worker reuses connections.
 let transporter: Transporter | undefined;
 
 function getTransporter() {
   if (!transporter) {
-    const url = process.env.SMTP_URL;
-    if (!url) throw new Error("SMTP_URL is not set");
-    transporter = nodemailer.createTransport({ url, pool: true });
+    transporter = nodemailer.createTransport({
+      url: workerEnv().SMTP_URL,
+      pool: true,
+    });
   }
   return transporter;
 }
-
-// Falls back to a placeholder sender; set EMAIL_FROM to an address on a domain
-// verified with your SMTP provider.
-const from = process.env.EMAIL_FROM || "ELTE Events <noreply@localhost>";
 
 type SendEmailInput = {
   to: string;
@@ -33,5 +31,11 @@ export async function sendEmail({ to, subject, react }: SendEmailInput) {
     render(react),
     render(react, { plainText: true }),
   ]);
-  await getTransporter().sendMail({ from, to, subject, html, text });
+  await getTransporter().sendMail({
+    from: workerEnv().EMAIL_FROM,
+    to,
+    subject,
+    html,
+    text,
+  });
 }
