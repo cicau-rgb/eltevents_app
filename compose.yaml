@@ -17,6 +17,13 @@ services:
       timeout: 3s
       retries: 10
 
+  # Local SMTP sink: accepts any mail on 1025 and shows it at http://localhost:8025.
+  mailpit:
+    image: axllent/mailpit
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"
+
   # Email worker. Not started by default (locally you can run `pnpm worker`);
   # start it with: docker compose --profile worker up -d --build
   worker:
@@ -27,6 +34,9 @@ services:
     environment:
       # Inside the compose network Postgres is reachable as "postgres".
       DATABASE_URL: postgres://postgres:postgres@postgres:5432/eltevents
+      # Mailpit is reachable as "mailpit" inside the compose network; this
+      # overrides SMTP_URL from .env (which targets localhost for pnpm worker).
+      SMTP_URL: smtp://mailpit:1025
     depends_on:
       postgres:
         condition: service_healthy

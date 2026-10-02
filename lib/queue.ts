@@ -1,13 +1,11 @@
 import { PgBoss } from "pg-boss";
-import type { EmailTemplate } from "./email";
+import type { EmailTemplate } from "./email-templates";
 
 export const SEND_EMAIL_QUEUE = "send-email";
 
 export type SendEmailJob = {
   to: string;
   template: EmailTemplate;
-  // Passed on to Resend, so a retried job is never delivered twice.
-  idempotencyKey: string;
 };
 
 // Producer client: no maintenance, no scheduling, no LISTEN connection. It does
@@ -48,7 +46,8 @@ function getBoss() {
 
 // Enqueuing is one INSERT, so it is safe to await inside a request and the job
 // survives the function being frozen afterwards. Failures are logged, not
-// thrown, so the auth response does not depend on the queue.
+// thrown, so the auth response does not depend on the queue. Resolves to
+// whether the job was queued.
 export async function enqueueEmail(job: SendEmailJob) {
   try {
     const boss = await getBoss();
@@ -59,7 +58,9 @@ export async function enqueueEmail(job: SendEmailJob) {
       // The payload holds a one-time token URL; don't keep finished jobs long.
       deleteAfterSeconds: 60 * 60,
     });
+    return true;
   } catch (error) {
     console.error(`Failed to enqueue "${job.template.id}" email`, error);
+    return false;
   }
 }
