@@ -4,6 +4,10 @@ import { nextCookies } from "better-auth/next-js";
 import { after } from "next/server";
 import { sendResetPasswordEmail, sendVerificationEmail } from "./auth-emails";
 import { db } from "./db";
+import { webEnv } from "./env";
+
+// Fail at startup (first import) if the auth settings are missing.
+webEnv();
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, { provider: "pg" }),
